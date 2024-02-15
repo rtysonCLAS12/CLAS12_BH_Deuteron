@@ -20,11 +20,11 @@ int neutron_electroprod()
 	auto endtime = starttime;
 	auto durtime = chrono::duration_cast<chrono::minutes>(endtime - starttime);
 
-    TString filename="/w/work/clas12/tyson/data_repo/BH_deut/test/ntest_";
-	//TString filename="/w/work/clas12/tyson/data_repo/BH_deut/neutron_electroprod_10p6/nelec10p6_";
+    //TString filename="/w/work/clas12/tyson/data_repo/BH_deut/test/ntest_";
+	TString filename="/w/work/clas12/tyson/data_repo/BH_deut/neutron_electroprod_10p6/nelec10p6_";
     //TString filename="/w/work/clas12/tyson/data_repo/BH_deut/neutron_electroprod_10p2/nelec10p2_";
-	int NFiles = 1;
-    Long64_t evpfile = 10,NTotEvents=0;
+	int NFiles = 100;
+    Long64_t evpfile = 10000,NTotEvents=0; //NTotEvents is a counter to check we get desired nb events (ie leave at 0)
    //49 mins for 10M events
 
 	// electron: lepType -> 0      muon: lepType -> 1

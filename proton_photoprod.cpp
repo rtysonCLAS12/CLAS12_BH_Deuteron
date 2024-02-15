@@ -20,11 +20,11 @@ int proton_photoprod()
 	auto endtime = starttime;
 	auto durtime = chrono::duration_cast<chrono::minutes>(endtime - starttime);
 
-	//TString filename="/w/work/clas12/tyson/data_repo/BH_deut/proton_photoprod_10p6/pphoto10p6_";
+	TString filename="/w/work/clas12/tyson/data_repo/BH_deut/proton_photoprod_10p6/pphoto10p6_";
     //TString filename="/w/work/clas12/tyson/data_repo/BH_deut/proton_photoprod_10p2/pphoto10p2_";
-    TString filename="/w/work/clas12/tyson/data_repo/BH_deut/test/ptest_";
-	int NFiles = 1;
-    Long64_t evpfile = 10,NTotEvents=0;
+    //TString filename="/w/work/clas12/tyson/data_repo/BH_deut/test/ptest_";
+	int NFiles = 100;
+    Long64_t evpfile = 10000,NTotEvents=0; //NTotEvents is a counter to check we get desired nb events (ie leave at 0)
    //49 mins for 10M events
    //5 min for 1M events
    
@@ -37,7 +37,7 @@ int proton_photoprod()
     int leppid=11;
     if(lepType==1){leppid=13;}
 
-    double Ebeam = 10.2;
+    double Ebeam = 10.6;
 
 	double var[10];
 	double weight = 0.0;

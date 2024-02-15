@@ -22,7 +22,7 @@ int neutron_photoprod()
 
 	TString filename="/w/work/clas12/tyson/data_repo/BH_deut/neutron_photoprod_10p6/nphoto10p6_";
 	int NFiles = 1;
-    Long64_t evpfile = 10000,NTotEvents=0;
+    Long64_t evpfile = 10000,NTotEvents=0; //NTotEvents is a counter to check we get desired nb events (ie leave at 0)
 
 	// electron: lepType -> 0      muon: lepType -> 1
 	int lepType = 0;
