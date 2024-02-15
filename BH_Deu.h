@@ -329,12 +329,13 @@ namespace leptonTensor
 
 }
 
-namespace protonTensor
+namespace nuclearTensor
 {
-    const double mpro = 0.938272;                          
+    double mpro = 0.938272; //default proton                  
     const double mdeu = 1.875613;
     const double alp = 1.0 / 137.036;
-    const double plim = 2.0;                                 //GeV    the up limit of three internal integral momentum
+    const double plim = 2.0; //GeV    the up limit of three internal integral momentum
+    int p_type=2212;  //2212 for protons, 2112 for neutrons                          
 
     const string strpnCoe[3] = { "pwpw_coetab/","pwfsi_coetab/","fsifsi_coetab/" };
     const string strpnCoedim[3] = { "pwpw_coedim/","pwfsi_coedim/","fsifsi_coedim/" };
@@ -380,6 +381,14 @@ namespace protonTensor
     double pwmomFv[npp][4];
     // -2  p2dotp2   P0dotP0    +4  m md fo1 fo2
     double pwMomdotvar[momtenpwNum - 2 + 4];
+
+    void setPType(int in_p_type){
+        p_type=in_p_type;
+        if(p_type==2112){
+            mpro=0.939565;
+        }
+
+    }
 
     int indexFun(int row, int col, int momnum)
     {
@@ -535,8 +544,15 @@ namespace protonTensor
         double Q2 = pow(qnorm, 2) - pow(nu, 2);
         pwMomdotvar[0] = mpro;
         pwMomdotvar[1] = mdeu;
-        pwMomdotvar[2] = formFun::proF1(Q2);
-        pwMomdotvar[3] = formFun::proF2(Q2);
+        if(p_type==2112){
+            pwMomdotvar[2] = formFun::neuF1(Q2);
+            pwMomdotvar[3] = formFun::neuF2(Q2);
+            //std::cout<<"using neutron funct"<<std::endl;
+        } else{
+            pwMomdotvar[2] = formFun::proF1(Q2);
+            pwMomdotvar[3] = formFun::proF2(Q2);
+            //std::cout<<"using proton funct"<<std::endl;
+        }
 
         pwMomdotvar[4] = leptonTensor::Fvprod(P0Fv, p2Fv);
         pwMomdotvar[5] = leptonTensor::Fvprod(P0Fv, qFv);
@@ -629,7 +645,7 @@ namespace protonTensor
             }
         }
 
-        cout << "import exponent vecotr matrix for plane wave approximation" << endl;
+        cout << "import exponent vector matrix for plane wave approximation" << endl;
     }
 
     void setpwcoeVal()
@@ -736,427 +752,7 @@ namespace protonTensor
         nume = pwNume();
         deno = pow(mdeu, 2) - 2. * mdeu * sqrt(pow(mpro, 2) + pow(p2norm, 2));
 
-        pwampsq = nume / (pow(2. * mpro, 2) * pow(deno, 2));
-
-        pcnorm = sqrt(slla / 4. - pow(leptonTensor::mlepton, 2));
-
-        // differential variable d p_1  d_phi_1  d s_ll  d s_pn  d t  d theta_lep  d phi_lep  d phi_p34
-        // azimuthal angle with respect to p_gam remains
-        // sin(thetaea) for lepton pair phase space
-        pwdcs = 1. / 3. * pow(alp, 3) / (2. * pow(4. * M_PI, 5)) * p1norm / (pow(mdeu, 2) * sqrt(pow(mpro, 2) + pow(p1norm, 2)) * qnorm) * pwampsq
-            * pcnorm / (pow(Egama, 2) * sqrt(slla) * pow(tqsqa, 2)) * pow(2. * mpro, 2) * sin(thetaea);
-
-        return pwdcs;
-    }
-
-}
-
-namespace neutronTensor
-{
-    const double mpro = 0.939565;          
-    const double mdeu = 1.875613;
-    const double alp = 1.0 / 137.036;
-    const double plim = 2.0;                                 //GeV    the up limit of three internal integral momentum
-
-    const string strpnCoe[3] = { "pwpw_coetab/","pwfsi_coetab/","fsifsi_coetab/" };
-    const string strpnCoedim[3] = { "pwpw_coedim/","pwfsi_coedim/","fsifsi_coedim/" };
-
-    const string strtenName[3] = { "H1_","Hc","H2" };
-    const string strdimfileExt = "dim.txt";
-    const string strfileExt = ".txt";
-    const string strfilegmnExt = "gmn.txt";
-
-    const string strdeuForm[4] = { "fd","gd","hd","id" };
-    const string strdeuFormc[4] = { "fdc","gdc","hdc","idc" };
-
-    const int npp = 4;
-    const int momtenpwNum = 6;
-    const string strmompw[npp - 1] = { "P0","p2","q" };
-
-    // dimension matrix for coefficients exponent matrix for a specific deuteron form factor product
-    int pwCoeDimmat[4][4][npp][npp];
-
-    // coefficients exponent matrix for a specific deuteron form factor product and a specific momentum tensor
-    // pointer array for two dimentional matrix of coefficient exponent table
-    // the dimensions for exponent vector matrix are from   Dimmat  , so declare dynamical allocated matrix
-    // momtennum plus 1  for g_mn tensor
-    int** pwCoeVecmat[4][4][momtenpwNum + 1];
-
-    //coefficient matrix saving actual double value coefficient   polynomials of momentum four product
-    double pwCoemat[4][4][momtenpwNum + 1];
-
-    formFun::deuVertexFun* myform = new formFun::deuVertexFun;
-
-    //use qnorm, nu, and p1norm to determine theta with energy conservation 
-    //p1norm : the norm of p1 three momentum
-    double p1norm, qnorm, nu;
-    double theta1, phi1;
-    double p2norm;
-
-    //three four momentum for plane wave contribution
-    double p1Fv[4];
-    double P0Fv[4];
-    double p2Fv[4];
-    double qFv[4];
-
-    double pwmomFv[npp][4];
-    // -2  p2dotp2   P0dotP0    +4  m md fo1 fo2
-    double pwMomdotvar[momtenpwNum - 2 + 4];
-
-    int indexFun(int row, int col, int momnum)
-    {
-        return (row - 1) * (momnum - 1 + (momnum - 1 - (row - 1) + 1)) / 2 + col - (row - 1);
-    }
-
-    int** allocateMatrix(int row, int col)
-    {
-        int** matrix;
-        matrix = new int* [row];
-
-        for (int i = 0; i < row; i++)
-        {
-            matrix[i] = new int[col];
-        }
-
-        return matrix;
-    }
-    void freematrix(int row, int** matrix)
-    {
-        for (int i = 0; i < row; i++)
-        {
-            delete[] matrix[i];
-        }
-
-        delete[] matrix;
-    }
-
-    double polyval(int row, int col, double var[], int** vecmat, int coemomdim, int varprenum)
-    {
-        // varprenum = 4 for proton-proton term     varprenum = 6 for proton-neutron cross term
-        int pdotpnum;
-
-        double coevalmono = 1.0;
-        double coeval = 0.0;
-
-        for (int ii = 0; ii < row; ii++)
-        {
-            coevalmono = 1.0;
-            for (int jj = 0; jj < varprenum; jj++)
-            {
-                coevalmono = coevalmono * pow(var[jj], vecmat[ii][jj]);
-            }
-            //the num of momentum four product is related to the dimension of mass exponent in the denominator
-            pdotpnum = coemomdim - (vecmat[ii][0] + vecmat[ii][1]) / 2;
-            for (int jj = varprenum; jj < varprenum + pdotpnum; jj++)
-            {
-                //minus 1 for the index starts from 0 in c++, 
-                //the momdotvar position vector is imported from mathematica, index starts from 1
-                coevalmono = coevalmono * var[vecmat[ii][jj] - 1];
-            }
-            coevalmono = coevalmono * (double)(vecmat[ii][col - 1]);
-
-            coeval = coeval + coevalmono;
-        }
-        return coeval;
-    }
-
-    //contraction function for lepton pair production
-    void contractFun(double lcoe[4], double lmom[4][4], double nuclmom[][4], int nuclmomNum, double contrmat[])
-    {
-        //calculate the contraction of lepton tensor and nuclear tensor
-        double contrelem;
-        int index;
-
-        //contraction between nuclear part gmn and lepton tensor
-        //nu and qnorm must be setted before the function call
-        contrelem = 0.;
-        contrelem = contrelem + lcoe[0] * ((1. - pow(nu / qnorm, 2)) * 1. + 1. + 1.);
-
-        for (int i = 1; i < 4; i++)
-        {
-            contrelem = contrelem + lcoe[i]
-                * (pow(lmom[i][0] - lmom[i][3] * nu / qnorm, 2) * 1.
-                    + pow(lmom[i][1], 2) * (-1.)
-                    + pow(lmom[i][2], 2) * (-1.));
-        }
-
-        contrmat[0] = contrelem;
-
-        //contraction between nuclear part ( p_mu p_nu + p_nu p_mu )/2  and lepton tensor
-        for (int k = 1; k < nuclmomNum; k++)
-        {
-            for (int n = k; n < nuclmomNum; n++)
-            {
-                //indexFun gives index from 1
-                index = indexFun(k, n, nuclmomNum);
-                contrelem = 0.;
-
-                contrelem = contrelem + lcoe[0] * (
-                    (1. - pow(nu / qnorm, 2)) * nuclmom[k][0] * nuclmom[n][0] - nuclmom[k][1] * nuclmom[n][1] - nuclmom[k][2] * nuclmom[n][2]);
-
-                for (int i = 1; i < 4; i++)
-                {
-                    contrelem = contrelem + lcoe[i] * (
-                        pow(lmom[i][0] - lmom[i][3] * nu / qnorm, 2) * nuclmom[k][0] * nuclmom[n][0]
-                        + pow(lmom[i][1], 2) * nuclmom[k][1] * nuclmom[n][1]
-                        + pow(lmom[i][2], 2) * nuclmom[k][2] * nuclmom[n][2]
-                        - 2. * lmom[i][1] * (lmom[i][0] - lmom[i][3] * nu / qnorm)
-                        * (nuclmom[k][0] * nuclmom[n][1] + nuclmom[n][0] * nuclmom[k][1]) / 2.
-                        - 2. * lmom[i][2] * (lmom[i][0] - lmom[i][3] * nu / qnorm)
-                        * (nuclmom[k][0] * nuclmom[n][2] + nuclmom[n][0] * nuclmom[k][2]) / 2.
-                        + 2. * lmom[i][1] * lmom[i][2]
-                        * (nuclmom[k][1] * nuclmom[n][2] + nuclmom[n][1] * nuclmom[k][2]) / 2.);
-                }
-
-                contrmat[index] = contrelem;
-
-            }
-        }
-    }
-
-    void setnuclmomVar(double p1a, double phi1a, double spna, double tqsqa)
-    {
-        //use p1 to determine proton scattering angle theta1, 
-        //for a certain theta1, there may be two solutions for proton momentum p1
-
-        p1norm = p1a;
-        phi1 = phi1a;
-        nu = (spna - tqsqa - pow(mdeu, 2)) / (2. * mdeu);
-        qnorm = sqrt(pow(nu, 2) - tqsqa);
-
-        /*nu = nua;
-        qnorm = qa;*/
-
-        theta1 = acos((pow(qnorm, 2) + 2. * (nu + mdeu) * sqrt(pow(mpro, 2) + pow(p1norm, 2)) - pow(nu + mdeu, 2)) / (2. * qnorm * p1norm));
-        p2norm = sqrt(pow(nu + mdeu - sqrt(pow(mpro, 2) + pow(p1norm, 2)), 2) - pow(mpro, 2));
-
-        p1Fv[0] = sqrt(pow(mpro, 2) + pow(p1norm, 2));
-        p1Fv[1] = p1norm * sin(theta1) * cos(phi1);
-        p1Fv[2] = p1norm * sin(theta1) * sin(phi1);
-        p1Fv[3] = p1norm * cos(theta1);
-
-        P0Fv[0] = mdeu;
-        P0Fv[1] = 0.;
-        P0Fv[2] = 0.;
-        P0Fv[3] = 0.;
-
-        p2Fv[0] = sqrt(pow(mpro, 2) + pow(p2norm, 2));
-        p2Fv[1] = -p1norm * sin(theta1) * cos(phi1);
-        p2Fv[2] = -p1norm * sin(theta1) * sin(phi1);
-        p2Fv[3] = qnorm - p1norm * cos(theta1);
-
-        qFv[0] = nu;
-        qFv[1] = 0.;
-        qFv[2] = 0.;
-        qFv[3] = qnorm;
-
-    }
-
-    void setpwMomdotvar()
-    {
-        double Q2 = pow(qnorm, 2) - pow(nu, 2);
-        pwMomdotvar[0] = mpro;
-        pwMomdotvar[1] = mdeu;
-        pwMomdotvar[2] = formFun::neuF1(Q2);
-        pwMomdotvar[3] = formFun::neuF2(Q2);
-
-        pwMomdotvar[4] = leptonTensor::Fvprod(P0Fv, p2Fv);
-        pwMomdotvar[5] = leptonTensor::Fvprod(P0Fv, qFv);
-        pwMomdotvar[6] = leptonTensor::Fvprod(p2Fv, qFv);
-        pwMomdotvar[7] = leptonTensor::Fvprod(qFv, qFv);
-
-        for (int i = 0; i < 4; i++)
-        {
-            pwmomFv[0][i] = 0.0;
-            pwmomFv[1][i] = P0Fv[i];
-            pwmomFv[2][i] = p2Fv[i];
-            pwmomFv[3][i] = qFv[i];
-
-        }
-
-    }
-
-    void importpwcoeMat()
-    {
-        int rowdim;
-        const int coemomdimgmn = 2;
-        const int coemomdimp = 1;
-        const int varprenum = 4;
-        //denominator's largest mass dimension  m^8   8/2=4       
-        //nucleon electromagnetic form factor 2   deuteron form factor  4  deuteron polarization summation  2      
-        const int demaxdim = 4;
-
-        const int coldimgmn = varprenum + demaxdim + coemomdimgmn + 1;
-        const int coldimp = varprenum + demaxdim + coemomdimp + 1;
-        int index;
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = i; j < 4; j++)
-            {
-                ifstream readDimmat(strpnCoe[0] + strpnCoedim[0] + strtenName[0] + strdeuForm[i] + strdeuForm[j] + strdimfileExt);
-                assert(readDimmat.is_open());
-                for (int ii = 0; ii < npp; ii++)
-                {
-                    for (int jj = 0; jj < npp; jj++)
-                    {
-                        readDimmat >> pwCoeDimmat[i][j][ii][jj];
-                    }
-                }
-                readDimmat.close();
-
-                // import exponent vector matrix for g_mu_nu tensor
-                ifstream readexpVecmat(strpnCoe[0] + strtenName[0] + strdeuForm[i] + strdeuForm[j] + strfilegmnExt);
-                assert(readexpVecmat.is_open());
-
-                rowdim = pwCoeDimmat[i][j][0][0];
-
-                index = 0;
-                pwCoeVecmat[i][j][index] = allocateMatrix(rowdim, coldimgmn);
-
-                for (int kk = 0; kk < rowdim; kk++)
-                {
-                    for (int nn = 0; nn < coldimgmn; nn++)
-                    {
-                        readexpVecmat >> pwCoeVecmat[i][j][index][kk][nn];
-                    }
-                }
-                readexpVecmat.close();
-
-                // import exponent vector matrix for rank two momentum tensor
-                for (int ii = 1; ii < npp; ii++)
-                {
-                    for (int jj = ii; jj < npp; jj++)
-                    {
-                        ifstream readexpVecmat(strpnCoe[0] + strtenName[0] + strdeuForm[i] + strdeuForm[j]
-                            + strmompw[ii - 1] + strmompw[jj - 1] + strfileExt);
-                        assert(readexpVecmat.is_open());
-                        rowdim = pwCoeDimmat[i][j][ii][jj];
-
-                        //the index for a certain momentum rank 2 tensor
-                        //index for g_mu_nu  is  0
-                        index = indexFun(ii, jj, npp);
-                        pwCoeVecmat[i][j][index] = allocateMatrix(rowdim, coldimp);
-                        for (int kk = 0; kk < rowdim; kk++)
-                        {
-                            for (int nn = 0; nn < coldimp; nn++)
-                            {
-                                readexpVecmat >> pwCoeVecmat[i][j][index][kk][nn];
-                            }
-                        }
-                        readexpVecmat.close();
-                    }
-                }
-
-
-            }
-        }
-
-        cout << "import exponent vecotr matrix for plane wave approximation" << endl;
-    }
-
-    void setpwcoeVal()
-    {
-        int rowdim;
-        //  +4  m md fo1 fo2      +4   denominator's largest dimension  m^8   8/2=4
-        //  +1  p2_a q_b   coe     dimension of coefficient  for plane wave is 1             +1    coefficient value
-        //  the coldim  for gmn term   should add another 1, as the dimension of gmn is 0
-        const int coemomdimgmn = 2;
-        const int coemomdimp = 1;
-        const int varprenum = 4;
-        const int demaxdim = 4;        //denominator's largest mass dimension  m^8   8/2=4
-
-        const int coldimgmn = varprenum + demaxdim + coemomdimgmn + 1;
-        const int coldimp = varprenum + demaxdim + coemomdimp + 1;
-        int index;
-        //int pdotpnum;
-
-        //double coevalmono = 1.0;
-        //double coeval = 0.0;
-
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = i; j < 4; j++)
-            {
-                rowdim = pwCoeDimmat[i][j][0][0];
-                index = 0;
-
-                pwCoemat[i][j][index] = polyval(rowdim, coldimgmn, pwMomdotvar, pwCoeVecmat[i][j][index], coemomdimgmn, varprenum);
-
-                //coeval = 0.0;
-                //coevalmono = 1.0;
-
-                for (int k = 1; k < npp; k++)
-                {
-                    for (int n = k; n < npp; n++)
-                    {
-                        rowdim = pwCoeDimmat[i][j][k][n];
-                        //index = (k - 1) * (npp - 1 + (npp - 1 - k + 2)) / 2 + n + 1 - k;
-                        index = indexFun(k, n, npp);
-                        if (rowdim == 0)
-                        {
-                            pwCoemat[i][j][index] = 0.0;
-                        }
-                        else
-                        {
-                            pwCoemat[i][j][index] = polyval(rowdim, coldimp, pwMomdotvar, pwCoeVecmat[i][j][index], coemomdimp, varprenum);
-
-                        }
-
-                    }
-                }
-            }
-        }
-    }
-
-    double pwNume()
-    {
-        double deuform[4] = { myform->deufd(p2norm), myform->deugd(p2norm), myform->deuhd(p2norm), myform->deuid(p2norm) };
-        int index;
-        double pwnume = 0.;
-        double deucoe;
-        double contrmat[momtenpwNum + 1];
-
-        contractFun(leptonTensor::lepcoe, leptonTensor::lepmomFv, pwmomFv, npp, contrmat);
-
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = i; j < 4; j++)
-            {
-                deucoe = deuform[i] * deuform[j];
-
-                index = 0;
-                pwnume = pwnume + deucoe * pwCoemat[i][j][index] * contrmat[index];
-
-                for (int k = 1; k < npp; k++)
-                {
-                    for (int n = k; n < npp; n++)
-                    {
-                        index = indexFun(k, n, npp);
-                        pwnume = pwnume + deucoe * pwCoemat[i][j][index] * contrmat[index];
-                    }
-                }
-            }
-        }
-        return pwnume;
-    }
-
-    //plane wave contribution to total differential cross section
-    double pwdcsfun(double Egama, double pgama, double thetaea, double phiea, double slla, double tqsqa, double spna, double p1a, double phi1a)
-    {
-        double nume, deno;
-        double pwampsq, pwdcs;
-
-        double pcnorm;
-
-        leptonTensor::setlepmomVar(Egama, pgama, thetaea, phiea, slla, spna, tqsqa);
-        setnuclmomVar(p1a, phi1a, spna, tqsqa);
-
-        //set the momentum dot variables  and the momentum tensor coefficient
-        setpwMomdotvar();
-        setpwcoeVal();
-
-        nume = pwNume();
-        deno = pow(mdeu, 2) - 2. * mdeu * sqrt(pow(mpro, 2) + pow(p2norm, 2));
+        //std::cout<<"mpro "<<mpro<<std::endl;
 
         pwampsq = nume / (pow(2. * mpro, 2) * pow(deno, 2));
 
@@ -1249,8 +845,8 @@ namespace incidentPhoton
 
 namespace BH_deuteron
 {
-    double Md = protonTensor::mdeu;
-    double Mp = protonTensor::mpro;
+    double Md = nuclearTensor::mdeu;
+    double Mp = 0.938272;
     double maxEnergy = 8.5;
 
     const double anglow = 5.0 * M_PI / 180.0;
@@ -1280,14 +876,13 @@ namespace BH_deuteron
             cout << "input wrong number for the final state lepton type !" << endl;
         }
 
+        nuclearTensor::setPType(target_type);
+        nuclearTensor::importpwcoeMat();
+        nuclearTensor::myform->forminterpInit();
+
         if(target_type==2112){
-            neutronTensor::importpwcoeMat();
-            neutronTensor::myform->forminterpInit();
-            Mp = neutronTensor::mpro;
-        } else{
-            protonTensor::importpwcoeMat();
-            protonTensor::myform->forminterpInit();
-        }
+            Mp = 0.939565;
+        } 
         
     }
 
@@ -1301,6 +896,8 @@ namespace BH_deuteron
         double spnmin = 4. * pow(Mp, 2);
         // deuteron target rest frame, invariant mass squred for real photon
         double sGamD = pow(Md, 2) + 2. * Md * pgam;
+
+        //std::cout<<"Mp "<<Mp<<std::endl;
 
         // sll 
         ranlow[0] = sllmin;
@@ -1467,11 +1064,8 @@ namespace BH_deuteron
             }
             else
             {
-                if(target_type==2112){
-                    dsigma = neutronTensor::pwdcsfun(Egam_in, pgam_in, thetalep_in, philep_in, sll_in, t_in, spn_in, p1_in, phi1_in);
-                } else{
-                    dsigma = protonTensor::pwdcsfun(Egam_in, pgam_in, thetalep_in, philep_in, sll_in, t_in, spn_in, p1_in, phi1_in);
-                }
+                
+                dsigma = nuclearTensor::pwdcsfun(Egam_in, pgam_in, thetalep_in, philep_in, sll_in, t_in, spn_in, p1_in, phi1_in);
                 
                 dsigma = dsigma * phaseVol;
                 //dsigma = dsigma * phaseVol / eventNum;

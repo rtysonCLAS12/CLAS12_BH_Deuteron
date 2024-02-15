@@ -89,7 +89,7 @@ int proton_electroprod()
                 //p
 				fprintf(f, "%d %d %d %d %d %d %.6E %.6E %.6E %.6E %.6E %.6E %.6E %.6E\n",3, 0, 1,t_type,0,0, pout[0].X(), pout[0].Y(), pout[0].Z(), pout[0].E(),pout[0].M(),0.0,0.0,0.0);
                 //e'
-				fprintf(f, "%d %d %d %d %d %d %.6E %.6E %.6E %.6E %.6E %.6E %.6E %.6E\n",1, 0, 1,11,0,0, kf[0].X(), kf[0].Y(), kf[0].Z(), kf[0].E(),kf[0].M(),0.0,0.0,0.0);
+				fprintf(f, "%d %d %d %d %d %d %.6E %.6E %.6E %.6E %.6E %.6E %.6E %.6E\n",4, 0, 1,11,0,0, kf[0].X(), kf[0].Y(), kf[0].Z(), kf[0].E(),kf[0].M(),0.0,0.0,0.0);
                 
 			}
 		}

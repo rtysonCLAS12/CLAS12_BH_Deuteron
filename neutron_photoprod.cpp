@@ -80,7 +80,7 @@ int neutron_photoprod()
 				fprintf(f, "%d %d %d %d %d %d %.6E %.6E %.6E %.6E %.6E %.6E %.6E %.6E\n",3, 0, 1,t_type,0,0, pout[0].X(), pout[0].Y(), pout[0].Z(), pout[0].E(),pout[0].M(),0.0,0.0,0.0);
                 //gamma -- don't actually want to simulate but could be good info
                 //number 0 before pid makes geant4 not propagate it
-				fprintf(f, "%d %d %d %d %d %d %.6E %.6E %.6E %.6E %.6E %.6E %.6E %.6E\n",1, 0, 0,22,0,0, pgamFv.X(), pgamFv.Y(), pgamFv.Z(), pgamFv.E(),pgamFv.M(),0.0,0.0,0.0);
+				fprintf(f, "%d %d %d %d %d %d %.6E %.6E %.6E %.6E %.6E %.6E %.6E %.6E\n",4, 0, 0,22,0,0, pgamFv.X(), pgamFv.Y(), pgamFv.Z(), pgamFv.E(),pgamFv.M(),0.0,0.0,0.0);
                 
 			}
 		}
